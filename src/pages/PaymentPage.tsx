@@ -43,7 +43,7 @@ function PaymentPage() {
       .eq('split_id', id)
       .eq('email', form.email)
       .eq('has_paid', true)
-      .single()
+      .maybeSingle()
 
     return !!data
   }
