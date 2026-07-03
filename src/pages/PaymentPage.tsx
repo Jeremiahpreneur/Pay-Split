@@ -69,9 +69,12 @@ function PaymentPage() {
 
     try {
       // Step 1: Get Nomba access token
-      const tokenRes = await fetch('https://api.nomba.com/v1/auth/token/issue', {
+        const tokenRes = await fetch('https://api.nomba.com/v1/auth/token/issue', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'accountId': import.meta.env.VITE_NOMBA_ACCOUNT_ID,
+        },
         body: JSON.stringify({
           grant_type: 'client_credentials',
           client_id: import.meta.env.VITE_NOMBA_CLIENT_ID,
