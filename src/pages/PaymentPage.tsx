@@ -83,10 +83,11 @@ function PaymentPage() {
       })
 
       const tokenData = await tokenRes.json()
+      console.log('NOMBA TOKEN RESPONSE:', JSON.stringify(tokenData))
       const accessToken = tokenData.data?.access_token
 
       if (!accessToken) {
-        toast.error('Payment setup failed. Try again!')
+        toast.error(`Token failed: ${JSON.stringify(tokenData)}`)
         setPaying(false)
         return
       }
@@ -113,10 +114,11 @@ function PaymentPage() {
       })
 
       const checkoutData = await checkoutRes.json()
+      console.log('NOMBA CHECKOUT RESPONSE:', JSON.stringify(checkoutData))
       const checkoutLink = checkoutData.data?.checkoutLink
 
       if (!checkoutLink) {
-        toast.error('Could not create payment. Try again!')
+        toast.error(`Checkout failed: ${JSON.stringify(checkoutData)}`)
         setPaying(false)
         return
       }
