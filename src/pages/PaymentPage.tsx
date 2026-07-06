@@ -102,7 +102,7 @@ function PaymentPage() {
         },
         body: JSON.stringify({
           order: {
-            orderReference: `paysplit-${id}-${Date.now()}`,
+            orderReference: `PS-${(id ?? '').slice(0, 8)}-${Date.now().toString().slice(-8)}`,
             customerId: form.email,
             callbackUrl: `${window.location.origin}/split/${id}`,
             customerEmail: form.email,
