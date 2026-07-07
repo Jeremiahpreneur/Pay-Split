@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { CreditCard, User, Mail, CheckCircle } from 'lucide-react'
+import { CreditCard, User, Mail, CheckCircle, Wallet } from 'lucide-react'
 import type { Split } from '../types'
 
 function PaymentPage() {
@@ -58,7 +58,6 @@ function PaymentPage() {
 
     setPaying(true)
 
-    // Check if this email already paid
     const paid = await checkIfAlreadyPaid()
     if (paid) {
       toast.error('This email has already paid for this split!')
@@ -68,10 +67,9 @@ function PaymentPage() {
     }
 
     try {
-      // Step 1: Get Nomba access token
-        const tokenRes = await fetch('https://api.nomba.com/v1/auth/token/issue', {
+      const tokenRes = await fetch('https://api.nomba.com/v1/auth/token/issue', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'accountId': import.meta.env.VITE_NOMBA_ACCOUNT_ID,
         },
@@ -83,16 +81,14 @@ function PaymentPage() {
       })
 
       const tokenData = await tokenRes.json()
-      console.log('NOMBA TOKEN RESPONSE:', JSON.stringify(tokenData))
       const accessToken = tokenData.data?.access_token
 
       if (!accessToken) {
-        toast.error(`Token failed: ${JSON.stringify(tokenData)}`)
+        toast.error('Payment setup failed. Try again!')
         setPaying(false)
         return
       }
 
-      // Step 2: Create Nomba checkout
       const checkoutRes = await fetch('https://api.nomba.com/v1/checkout/order', {
         method: 'POST',
         headers: {
@@ -114,16 +110,14 @@ function PaymentPage() {
       })
 
       const checkoutData = await checkoutRes.json()
-      console.log('NOMBA CHECKOUT RESPONSE:', JSON.stringify(checkoutData))
       const checkoutLink = checkoutData.data?.checkoutLink
 
       if (!checkoutLink) {
-        toast.error(`Checkout failed: ${JSON.stringify(checkoutData)}`)
+        toast.error('Could not create payment. Try again!')
         setPaying(false)
         return
       }
 
-      // Step 3: Save participant to Supabase before redirecting
       await supabase.from('participants').insert([{
         split_id: id,
         name: form.name,
@@ -132,7 +126,6 @@ function PaymentPage() {
         payment_reference: checkoutData.data?.orderReference,
       }])
 
-      // Step 4: Redirect to Nomba checkout page
       window.location.href = checkoutLink
 
     } catch {
@@ -143,94 +136,113 @@ function PaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading payment page...</p>
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#008000', borderTopColor: 'transparent' }} />
+          <p className="text-gray-400 text-sm">Loading payment page...</p>
+        </div>
       </div>
     )
   }
 
   if (!split) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Split not found.</p>
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+        <p className="text-gray-400">Split not found.</p>
       </div>
     )
   }
 
   if (alreadyPaid) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
-          <CheckCircle className="text-green-600 mx-auto mb-4" size={48} />
-          <h1 className="text-2xl font-bold text-gray-800">Already Paid!</h1>
-          <p className="text-gray-500 mt-2">You have already paid your share for <strong>{split.title}</strong>.</p>
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-4">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#00800020' }}>
+            <CheckCircle size={32} style={{ color: '#008000' }} />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Already Paid!</h1>
+          <p className="text-gray-400 mt-2">You have already paid your share for <strong className="text-white">{split.title}</strong>.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+    <div className="min-h-screen bg-[#0f1117] flex flex-col">
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">{split.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">Organized by {split.organizer_name}</p>
-        </div>
+      {/* Nav */}
+      <div className="border-b border-white/10 px-6 py-4 flex items-center gap-2">
+        <Wallet style={{ color: '#008000' }} size={20} />
+        <span className="font-bold text-white tracking-tight text-lg">PaySplit</span>
+      </div>
 
-        {/* Amount Card */}
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center mb-6">
-          <p className="text-sm text-green-700">Your share</p>
-          <p className="text-4xl font-bold text-green-600 mt-1">
-            ₦{split.amount_per_person.toLocaleString()}
-          </p>
-        </div>
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-5">
 
-        {/* Form */}
-        <div className="space-y-4">
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <User size={16} /> Your Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="e.g. Ayomide"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+          {/* Header */}
+          <div className="text-center">
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Payment Request</p>
+            <h1 className="text-xl font-bold text-white">{split.title}</h1>
+            <p className="text-gray-400 text-sm mt-1">Organized by {split.organizer_name}</p>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <Mail size={16} /> Your Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="e.g. ayomide@email.com"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
-
-          <button
-            onClick={handlePayment}
-            disabled={paying}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          {/* Amount Card */}
+          <div
+            className="rounded-xl p-5 text-center border"
+            style={{ backgroundColor: '#00800015', borderColor: '#00800040' }}
           >
-            <CreditCard size={18} />
-            {paying ? 'Processing...' : `Pay ₦${split.amount_per_person.toLocaleString()}`}
-          </button>
+            <p className="text-xs uppercase tracking-widest mb-1" style={{ color: '#008000' }}>Your Share</p>
+            <p className="text-4xl font-bold" style={{ color: '#008000' }}>
+              ₦{split.amount_per_person.toLocaleString()}
+            </p>
+          </div>
 
-          <p className="text-xs text-center text-gray-400">
-            Secured by Nomba 🔒
-          </p>
+          {/* Form */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                <User size={12} /> Your Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                placeholder="e.g. Ayomide"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              />
+            </div>
 
+            <div>
+              <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                <Mail size={12} /> Your Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                placeholder="e.g. ayomide@email.com"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              />
+            </div>
+
+            <button
+              onClick={handlePayment}
+              disabled={paying}
+              className="w-full font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide text-white flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#008000' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#006600')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#008000')}
+            >
+              <CreditCard size={16} />
+              {paying ? 'Processing...' : `Pay ₦${split.amount_per_person.toLocaleString()}`}
+            </button>
+
+            <p className="text-xs text-center text-gray-600">
+              Secured by Nomba 🔒
+            </p>
+          </div>
         </div>
       </div>
     </div>

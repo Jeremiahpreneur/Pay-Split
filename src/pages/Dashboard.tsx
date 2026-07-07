@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { Copy, CheckCircle, Clock, Users } from 'lucide-react'
+import { Copy, CheckCircle, Clock, ArrowLeft, Wallet } from 'lucide-react'
 import type { Split, Participant } from '../types'
 
 function Dashboard() {
@@ -60,93 +60,152 @@ function Dashboard() {
   const paidCount = participants.filter(p => p.has_paid).length
   const unpaidCount = participants.filter(p => !p.has_paid).length
   const totalCollected = paidCount * (split?.amount_per_person || 0)
+  const progressPercent = split ? (paidCount / split.num_participants) * 100 : 0
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading dashboard...</p>
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-400 text-sm">Loading dashboard...</p>
+        </div>
       </div>
     )
   }
 
   if (!split) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Split not found.</p>
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+        <p className="text-gray-400">Split not found.</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-lg mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0f1117] text-white">
 
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-800">{split.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">Organized by {split.organizer_name}</p>
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Total</p>
-              <p className="font-bold text-gray-800">₦{split.total_amount.toLocaleString()}</p>
+      {/* Top Nav */}
+      <div className="border-b border-white/10 px-4 py-4 flex items-center justify-between max-w-2xl mx-auto">
+        <div className="flex items-center gap-2">
+          <Wallet className="text-green-400" size={20} />
+          <span className="font-bold text-white tracking-tight">PaySplit</span>
+        </div>
+        <button
+          onClick={() => window.location.href = '/'}
+          className="flex items-center gap-1 text-gray-400 hover:text-white text-sm transition-colors"
+        >
+          <ArrowLeft size={14} /> New Split
+        </button>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+
+        {/* Hero Card */}
+        <div className="bg-linear-to-br from-green-500/20 to-emerald-600/10 border border-green-500/20 rounded-2xl p-6">
+          <p className="text-green-400 text-xs font-medium uppercase tracking-widest mb-1">Active Split</p>
+          <h1 className="text-2xl font-bold text-white mb-1">{split.title}</h1>
+          <p className="text-gray-400 text-sm">Organized by {split.organizer_name}</p>
+
+          {/* Progress Bar */}
+          <div className="mt-5">
+            <div className="flex justify-between text-xs text-gray-400 mb-2">
+              <span>{paidCount} of {split.num_participants} paid</span>
+              <span>{Math.round(progressPercent)}%</span>
             </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Per Person</p>
-              <p className="font-bold text-green-600">₦{split.amount_per_person.toLocaleString()}</p>
+            <div className="w-full bg-white/10 rounded-full h-2">
+              <div
+                className="bg-green-400 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Collected</p>
-              <p className="font-bold text-blue-600">₦{totalCollected.toLocaleString()}</p>
+          </div>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-3 gap-3 mt-5">
+            <div className="bg-white/5 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-400 mb-1">Total Bill</p>
+              <p className="font-bold text-white text-sm">₦{split.total_amount.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-400 mb-1">Per Person</p>
+              <p className="font-bold text-green-400 text-sm">₦{split.amount_per_person.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/5 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-400 mb-1">Collected</p>
+              <p className="font-bold text-white text-sm">₦{totalCollected.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            <Users size={18} /> Share Payment Link
-          </h2>
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-            <p className="text-sm text-gray-600 flex-1 truncate">{paymentLink}</p>
-            <button onClick={copyLink} className="text-green-600 hover:text-green-700 shrink-0">
-              <Copy size={18} />
+        {/* Share Link */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+          <p className="text-xs text-gray-400 uppercase tracking-widest mb-3">Payment Link</p>
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+            <p className="text-sm text-gray-300 flex-1 truncate">{paymentLink}</p>
+            <button
+              onClick={copyLink}
+              className="flex items-center gap-1.5 bg-green-500 hover:bg-green-400 text-black text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            >
+              <Copy size={12} /> Copy
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-2">Share this link with everyone who needs to pay</p>
+          <p className="text-xs text-gray-500 mt-2">Share this link with everyone who needs to pay</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
-            <CheckCircle className="text-green-600 mx-auto mb-1" size={24} />
-            <p className="text-2xl font-bold text-green-600">{paidCount}</p>
-            <p className="text-xs text-green-700">Paid</p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+              <CheckCircle className="text-green-400" size={18} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{paidCount}</p>
+              <p className="text-xs text-gray-400">Paid</p>
+            </div>
           </div>
-          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 text-center">
-            <Clock className="text-orange-500 mx-auto mb-1" size={24} />
-            <p className="text-2xl font-bold text-orange-500">{unpaidCount}</p>
-            <p className="text-xs text-orange-700">Pending</p>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+              <Clock className="text-orange-400" size={18} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">{unpaidCount}</p>
+              <p className="text-xs text-gray-400">Pending</p>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="font-semibold text-gray-800 mb-4">Participants</h2>
+        {/* Participants */}
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+          <p className="text-xs text-gray-400 uppercase tracking-widest mb-4">Participants</p>
+
           {participants.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-4">
-              No payments yet. Share the link above! 🔗
-            </p>
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm">No payments yet.</p>
+              <p className="text-gray-600 text-xs mt-1">Share the link above to get started</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {participants.map(p => (
-                <div key={p.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">{p.name}</p>
-                    <p className="text-xs text-gray-400">{p.email}</p>
+            <div className="space-y-2">
+              {participants.map((p, index) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between py-3 border-b border-white/5 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-gray-300">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-medium text-white text-sm">{p.name}</p>
+                      <p className="text-xs text-gray-500">{p.email}</p>
+                    </div>
                   </div>
                   {p.has_paid ? (
-                    <span className="bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1">
-                      <CheckCircle size={12} /> Paid
+                    <span className="flex items-center gap-1 bg-green-500/20 text-green-400 text-xs font-medium px-3 py-1 rounded-full">
+                      <CheckCircle size={10} /> Paid
                     </span>
                   ) : (
-                    <span className="bg-orange-100 text-orange-700 text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1">
-                      <Clock size={12} /> Pending
+                    <span className="flex items-center gap-1 bg-orange-500/20 text-orange-400 text-xs font-medium px-3 py-1 rounded-full">
+                      <Clock size={10} /> Pending
                     </span>
                   )}
                 </div>

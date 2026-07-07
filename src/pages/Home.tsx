@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { Users, DollarSign, User, Mail, FileText } from 'lucide-react'
+import { Users, DollarSign, User, Mail, FileText, Wallet } from 'lucide-react'
 
 function Home() {
   const navigate = useNavigate()
@@ -55,22 +55,43 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-        
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-600">PaySplit 💸</h1>
-          <p className="text-gray-500 mt-2">Split any bill. Share the link. Get paid.</p>
-        </div>
+    <div className="min-h-screen bg-[#0f1117] flex flex-col">
 
-        {/* Form */}
-        <div className="space-y-4">
+      {/* Nav */}
+      <div className="border-b border-white/10 px-6 py-4 flex items-center gap-2">
+        <Wallet style={{ color: '#008000' }} size={20} />
+        <span className="font-bold text-white tracking-tight text-lg">PaySplit</span>
+      </div>
+
+      {/* Hero */}
+      <div className="flex flex-col items-center justify-center px-4 pt-12 pb-6 text-center">
+        <div
+          className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full mb-6 border"
+          style={{ backgroundColor: '#00800015', borderColor: '#00800040', color: '#008000' }}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{ backgroundColor: '#008000' }}
+          />
+          Powered by Nomba
+        </div>
+        <h1 className="text-4xl font-bold text-white mb-3 leading-tight">
+          Split bills.<br />
+          <span style={{ color: '#008000' }}>Collect instantly.</span>
+        </h1>
+        <p className="text-gray-400 text-sm max-w-xs">
+          Create a split, share one link, and watch payments come in — no more chasing people on WhatsApp.
+        </p>
+      </div>
+
+      {/* Form Card */}
+      <div className="flex-1 flex items-start justify-center px-4 pb-10">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 w-full max-w-md space-y-4">
 
           {/* Title */}
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <FileText size={16} /> Bill Title
+            <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+              <FileText size={12} /> Bill Title
             </label>
             <input
               type="text"
@@ -78,88 +99,99 @@ function Home() {
               placeholder="e.g. Dinner at Chicken Republic"
               value={form.title}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              style={{ outlineColor: '#008000' }}
             />
           </div>
 
-          {/* Total Amount */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <DollarSign size={16} /> Total Amount (₦)
-            </label>
-            <input
-              type="number"
-              name="total_amount"
-              placeholder="e.g. 20000"
-              value={form.total_amount}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
-
-          {/* Number of Participants */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <Users size={16} /> Number of People
-            </label>
-            <input
-              type="number"
-              name="num_participants"
-              placeholder="e.g. 4"
-              value={form.num_participants}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+          {/* Amount + People Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                <DollarSign size={12} /> Amount (₦)
+              </label>
+              <input
+                type="number"
+                name="total_amount"
+                placeholder="e.g. 20000"
+                value={form.total_amount}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                <Users size={12} /> People
+              </label>
+              <input
+                type="number"
+                name="num_participants"
+                placeholder="e.g. 4"
+                value={form.num_participants}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              />
+            </div>
           </div>
 
           {/* Amount Per Person */}
           {Number(amountPerPerson) > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-center">
-              <p className="text-sm text-green-700 font-medium">
-                Each person pays: <span className="text-lg font-bold">₦{Number(amountPerPerson).toLocaleString()}</span>
+            <div
+              className="rounded-xl px-4 py-3 flex items-center justify-between border"
+              style={{ backgroundColor: '#00800015', borderColor: '#00800040' }}
+            >
+              <p className="text-xs" style={{ color: '#008000' }}>Each person pays</p>
+              <p className="text-lg font-bold" style={{ color: '#008000' }}>
+                ₦{Number(amountPerPerson).toLocaleString()}
               </p>
             </div>
           )}
 
-          {/* Organizer Name */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <User size={16} /> Your Name
-            </label>
-            <input
-              type="text"
-              name="organizer_name"
-              placeholder="e.g. Jeremiah"
-              value={form.organizer_name}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+          {/* Name + Email Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                <User size={12} /> Your Name
+              </label>
+              <input
+                type="text"
+                name="organizer_name"
+                placeholder="e.g. Jeremiah"
+                value={form.organizer_name}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-400 flex items-center gap-2 mb-1.5 uppercase tracking-wider">
+                <Mail size={12} /> Email
+              </label>
+              <input
+                type="email"
+                name="organizer_email"
+                placeholder="you@email.com"
+                value={form.organizer_email}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none transition-all"
+              />
+            </div>
           </div>
 
-          {/* Organizer Email */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-1">
-              <Mail size={16} /> Your Email
-            </label>
-            <input
-              type="email"
-              name="organizer_email"
-              placeholder="e.g. jeremiah@email.com"
-              value={form.organizer_email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
-
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-wide text-white"
+            style={{ backgroundColor: '#008000' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#006600')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#008000')}
           >
-            {loading ? 'Creating Split...' : 'Create Split 🚀'}
+            {loading ? 'Creating...' : 'Create Split →'}
           </button>
 
+          <p className="text-xs text-center text-gray-600">
+            Payments secured by Nomba 🔒
+          </p>
         </div>
       </div>
     </div>
