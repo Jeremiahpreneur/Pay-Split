@@ -4,7 +4,7 @@
 
 ## 🚀 What is PaySplit?
 
-PaySplit is a group bill-splitting web app built for the DevCareer x Nomba Hackathon 2026. It lets an organizer create a bill split, share a unique payment link with participants, and track who has paid in real time — all powered by Nomba's payment API.
+PaySplit is a group bill-splitting web app built for the DevCareer x Nomba Hackathon 2026. It lets an organizer create a bill split, share a unique payment link with participants, and track who has paid in real time all powered by Nomba's payment API.
 
 ## 🔥 Features
 
